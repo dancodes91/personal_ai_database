@@ -1,0 +1,14 @@
+*.egg-info
+*.pyc
+.*cache
+.coverage
+.python-version
+.idea/
+.tox/
+.env
+build/
+dist/
+htmlcov
+venv/
+
+.vscode/settings.json
