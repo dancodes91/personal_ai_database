@@ -12,15 +12,25 @@ class VectorStoreService:
     """Service for managing vector embeddings with ChromaDB"""
     
     def __init__(self):
-        self.client = chromadb.PersistentClient(
-            path=settings.chroma_persist_directory,
-            settings=ChromaSettings(anonymized_telemetry=False)
-        )
-        self.collection = self.client.get_or_create_collection(
-            name=settings.chroma_collection_name,
-            metadata={"hnsw:space": "cosine"}
-        )
-        self.openai_client = openai.OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
+        try:
+            self.client = chromadb.PersistentClient(
+                path=settings.chroma_persist_directory,
+                settings=ChromaSettings(
+                    anonymized_telemetry=False,
+                    allow_reset=True
+                )
+            )
+            self.collection = self.client.get_or_create_collection(
+                name=settings.chroma_collection_name,
+                metadata={"hnsw:space": "cosine"}
+            )
+            self.openai_client = openai.OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
+            print(f"Vector store initialized successfully")
+        except Exception as e:
+            print(f"Error initializing vector store: {e}")
+            self.client = None
+            self.collection = None
+            self.openai_client = None
     
     def generate_embedding(self, text: str) -> List[float]:
         """Generate embedding for text using OpenAI"""
@@ -99,34 +109,61 @@ class VectorStoreService:
     
     def search_contacts(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Search contacts using semantic similarity"""
+        print(f"Vector search called with query: '{query}', limit: {limit}")
+        
         if not self.openai_client:
+            print("OpenAI client not available for vector search")
+            return []
+        
+        if not self.collection:
+            print("ChromaDB collection not available")
             return []
         
         try:
+            # Check collection count first
+            collection_count = self.collection.count()
+            print(f"Collection has {collection_count} embeddings")
+            
+            if collection_count == 0:
+                print("No embeddings in collection, returning empty results")
+                return []
+            
             # Generate query embedding
+            print("Generating query embedding...")
             query_embedding = self.generate_embedding(query)
+            print(f"Query embedding generated successfully (length: {len(query_embedding)})")
             
             # Search in ChromaDB
+            print("Searching in ChromaDB...")
             results = self.collection.query(
                 query_embeddings=[query_embedding],
                 n_results=limit,
                 include=["documents", "metadatas", "distances"]
             )
+            print(f"ChromaDB query completed. Raw results structure: {list(results.keys())}")
             
             # Format results
             formatted_results = []
             if results['ids'] and results['ids'][0]:
+                print(f"Found {len(results['ids'][0])} results from ChromaDB")
                 for i, contact_id in enumerate(results['ids'][0]):
+                    similarity_score = 1 - results['distances'][0][i]
+                    print(f"Result {i+1}: Contact ID {contact_id}, Similarity: {similarity_score:.3f}")
                     formatted_results.append({
                         "contact_id": int(contact_id),
-                        "similarity_score": 1 - results['distances'][0][i],  # Convert distance to similarity
+                        "similarity_score": similarity_score,
                         "metadata": results['metadatas'][0][i],
                         "matched_text": results['documents'][0][i]
                     })
+            else:
+                print("No results returned from ChromaDB query")
             
+            print(f"Returning {len(formatted_results)} formatted results")
             return formatted_results
         except Exception as e:
             print(f"Error searching contacts: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     def delete_contact_embedding(self, contact_id: int):

@@ -48,23 +48,39 @@ async def natural_language_query(
 ):
     """Process natural language queries about contacts"""
     
+    print(f"\n=== QUERY DEBUG START ===")
+    print(f"Query: {query_request.query}")
+    print(f"Limit: {query_request.limit}")
+    print(f"Use vector search: {query_request.use_vector_search}")
+    print(f"OpenAI API key configured: {bool(settings.openai_api_key)}")
+    
     start_time = datetime.now()
     search_method = "database"
     explanation = None
     
     try:
+        # Check vector store stats first
+        vector_stats = vector_store.get_collection_stats()
+        print(f"Vector store stats: {vector_stats}")
+        
         # Try vector search first if enabled and OpenAI is configured
         if query_request.use_vector_search and settings.openai_api_key:
+            print("Attempting vector search...")
             try:
                 vector_results = vector_store.search_contacts(
                     query_request.query, 
                     query_request.limit
                 )
+                print(f"Vector search returned {len(vector_results)} results")
                 
                 if vector_results:
+                    print("Vector results found, processing...")
                     # Get full contact details from database
                     contact_ids = [result["contact_id"] for result in vector_results]
+                    print(f"Contact IDs from vector search: {contact_ids}")
+                    
                     contacts = db.query(Contact).filter(Contact.id.in_(contact_ids)).all()
+                    print(f"Found {len(contacts)} contacts in database")
                     
                     # Create contact lookup
                     contact_lookup = {contact.id: contact for contact in contacts}
@@ -90,6 +106,9 @@ async def natural_language_query(
                     # Save to query history
                     save_query_history(db, query_request.query, len(formatted_results), execution_time)
                     
+                    print(f"Vector search completed successfully with {len(formatted_results)} results")
+                    print(f"=== QUERY DEBUG END ===\n")
+                    
                     return QueryResponse(
                         query=query_request.query,
                         results=formatted_results,
@@ -98,12 +117,21 @@ async def natural_language_query(
                         search_method=search_method,
                         explanation=explanation
                     )
+                else:
+                    print("Vector search returned no results, falling back to database search")
             except Exception as e:
-                print(f"Vector search failed, falling back to database search: {e}")
+                print(f"Vector search failed with error: {str(e)}")
+                print(f"Falling back to database search")
+        else:
+            print("Vector search disabled or OpenAI not configured, using database search")
         
         # Fallback to database search with AI parsing
+        print("Starting database search...")
         parsed_query = await parse_natural_language_query(query_request.query)
+        print(f"Parsed query: {parsed_query}")
+        
         results = execute_parsed_query(db, parsed_query, query_request.limit)
+        print(f"Database search returned {len(results)} results")
         
         # Calculate execution time
         execution_time = int((datetime.now() - start_time).total_seconds() * 1000)
@@ -120,6 +148,9 @@ async def natural_language_query(
                 "match_reason": "Database query match"
             })
         
+        print(f"Database search completed with {len(formatted_results)} formatted results")
+        print(f"=== QUERY DEBUG END ===\n")
+        
         return QueryResponse(
             query=query_request.query,
             results=formatted_results,
@@ -130,13 +161,18 @@ async def natural_language_query(
         )
         
     except Exception as e:
+        print(f"Query processing failed with error: {str(e)}")
+        print(f"=== QUERY DEBUG END ===\n")
         raise HTTPException(status_code=500, detail=f"Query processing failed: {str(e)}")
 
 async def parse_natural_language_query(query: str) -> dict:
     """Parse natural language query using OpenAI to understand intent"""
     
+    print(f"Parsing natural language query: '{query}'")
+    
     # Check if OpenAI API key is available
     if not settings.openai_api_key:
+        print("OpenAI API key not available, using simple keyword search")
         # Fallback to simple keyword search
         return {
             "type": "search",
@@ -147,6 +183,7 @@ async def parse_natural_language_query(query: str) -> dict:
         }
     
     try:
+        print("Calling OpenAI API for query parsing...")
         client = openai.OpenAI(api_key=settings.openai_api_key)
         
         parsing_prompt = f"""
@@ -172,6 +209,7 @@ async def parse_natural_language_query(query: str) -> dict:
         - "explanation": string (brief explanation of what the query is looking for)
 
         Examples:
+        - "Show me all contacts" -> {{"type": "search", "filters": {{}}, "explanation": "Showing all contacts"}}
         - "Find people in marketing" -> {{"type": "search", "filters": {{"job_title": "marketing"}}, "explanation": "Looking for contacts with marketing in their job title"}}
         - "Who has pets in New York?" -> {{"type": "search", "filters": {{"has_pets": true, "location": "New York"}}, "explanation": "Looking for contacts who have pets and are located in New York"}}
         - "Show me musicians" -> {{"type": "search", "filters": {{"interests": ["music"], "skills": ["music"]}}, "explanation": "Looking for contacts interested in music or with music skills"}}
@@ -190,6 +228,7 @@ async def parse_natural_language_query(query: str) -> dict:
         )
         
         result = response.choices[0].message.content.strip()
+        print(f"OpenAI response: {result}")
         
         # Clean up the response
         if result.startswith('```json'):
@@ -197,17 +236,22 @@ async def parse_natural_language_query(query: str) -> dict:
         if result.endswith('```'):
             result = result[:-3]
         
-        return json.loads(result)
+        parsed_result = json.loads(result)
+        print(f"Parsed query result: {parsed_result}")
+        return parsed_result
         
     except Exception as e:
+        print(f"Error parsing query with OpenAI: {e}")
         # Fallback to simple keyword search
-        return {
+        fallback_result = {
             "type": "search",
             "filters": {
                 "keyword": query
             },
             "explanation": f"Simple keyword search for: {query}"
         }
+        print(f"Using fallback result: {fallback_result}")
+        return fallback_result
 
 def execute_parsed_query(db: Session, parsed_query: dict, limit: int = 10) -> List[Contact]:
     """Execute the parsed query against the database"""
@@ -326,6 +370,50 @@ async def get_query_history(
         .limit(limit)\
         .all()
     return history
+
+@router.post("/test-db-search")
+async def test_database_search(
+    query_request: QueryRequest,
+    db: Session = Depends(get_db)
+):
+    """Test database search without vector search (for debugging)"""
+    
+    print(f"\n=== DATABASE SEARCH TEST ===")
+    print(f"Query: {query_request.query}")
+    
+    try:
+        # Force database search only
+        parsed_query = await parse_natural_language_query(query_request.query)
+        print(f"Parsed query: {parsed_query}")
+        
+        results = execute_parsed_query(db, parsed_query, query_request.limit)
+        print(f"Database search returned {len(results)} results")
+        
+        # Format results for response
+        formatted_results = []
+        for contact in results:
+            formatted_results.append({
+                "contact": format_contact_for_response(contact),
+                "similarity_score": 0.8,
+                "match_reason": "Database query match"
+            })
+        
+        print(f"Formatted {len(formatted_results)} results")
+        print(f"=== DATABASE SEARCH TEST END ===\n")
+        
+        return {
+            "query": query_request.query,
+            "results": formatted_results,
+            "results_count": len(results),
+            "search_method": "database_only",
+            "parsed_query": parsed_query
+        }
+        
+    except Exception as e:
+        print(f"Database search test failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Database search test failed: {str(e)}")
 
 @router.get("/suggestions")
 async def get_query_suggestions(db: Session = Depends(get_db)):

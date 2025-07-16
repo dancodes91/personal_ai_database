@@ -65,7 +65,7 @@ export default function AudioProcessingPage() {
         setRecordings(prev => [newRecording, ...prev]);
         
         // Auto-start processing
-        await processRecording(newRecording.id);
+        processRecording(newRecording.id);
         
       } catch (error) {
         console.error('Failed to upload file:', error);
