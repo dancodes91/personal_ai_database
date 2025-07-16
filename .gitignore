@@ -11,4 +11,5 @@ dist/
 htmlcov
 venv/
 uploads/
+*.db
 .vscode/settings.json
