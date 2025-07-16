@@ -2,16 +2,18 @@
 Configuration settings for the Personal AI Database
 """
 import os
-from typing import Optional
-from pydantic import BaseSettings
+from typing import Optional, List
+from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
     # Database
     database_url: str = "sqlite:///./personal_ai_database.db"
+    postgres_url: Optional[str] = None  # Alternative PostgreSQL URL
     
     # ChromaDB
-    chroma_persist_directory: str = "./chroma_db"
+    chroma_persist_directory: str = "./.chromadb"
     chroma_collection_name: str = "contacts_embeddings"
     
     # OpenAI
@@ -22,19 +24,25 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     
-    # CORS
-    allowed_origins: list = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    # CORS - loaded from .env as comma-separated string
+    allowed_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     
     # File Upload
     upload_dir: str = "./uploads"
     max_file_size: int = 50 * 1024 * 1024  # 50MB
     
-    # API
+    # API Configuration
     api_v1_str: str = "/api/v1"
     project_name: str = "Personal AI Database"
+    api_host: str = "0.0.0.0"
+    api_port: int = 8000
+    debug: bool = True
     
-    class Config:
-        env_file = ".env"
+    model_config = {"env_file": ".env", "extra": "ignore"}
+    
+    def get_cors_origins(self) -> List[str]:
+        """Get CORS origins as a list from comma-separated string"""
+        return [origin.strip() for origin in self.allowed_origins.split(',')]
 
 
 settings = Settings()
