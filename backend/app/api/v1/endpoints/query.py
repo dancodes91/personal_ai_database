@@ -212,7 +212,10 @@ async def parse_natural_language_query(query: str) -> dict:
         - "Show me all contacts" -> {{"type": "search", "filters": {{}}, "explanation": "Showing all contacts"}}
         - "Find people in marketing" -> {{"type": "search", "filters": {{"job_title": "marketing"}}, "explanation": "Looking for contacts with marketing in their job title"}}
         - "Who has pets in New York?" -> {{"type": "search", "filters": {{"has_pets": true, "location": "New York"}}, "explanation": "Looking for contacts who have pets and are located in New York"}}
-        - "Show me musicians" -> {{"type": "search", "filters": {{"interests": ["music"], "skills": ["music"]}}, "explanation": "Looking for contacts interested in music or with music skills"}}
+        - "Show me musicians" -> {{"type": "search", "filters": {{"job_title": "music", "interests": ["music"], "skills": ["music"]}}, "explanation": "Looking for contacts with music-related job titles, interests, or skills"}}
+        - "Find people interested in music" -> {{"type": "search", "filters": {{"job_title": "music", "interests": ["music"], "skills": ["music"]}}, "explanation": "Looking for contacts with music-related job titles, interests, or skills"}}
+        - "Who works in technology?" -> {{"type": "search", "filters": {{"job_title": "technology"}}, "explanation": "Looking for contacts working in technology"}}
+        - "Show me people in healthcare" -> {{"type": "search", "filters": {{"job_title": "health"}}, "explanation": "Looking for contacts working in healthcare"}}
         - "Find John" -> {{"type": "search", "filters": {{"name": "John"}}, "explanation": "Looking for contacts named John"}}
 
         Return only valid JSON without any additional text or formatting.
