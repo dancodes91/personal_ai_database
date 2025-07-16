@@ -256,14 +256,26 @@ async def parse_natural_language_query(query: str) -> dict:
 def execute_parsed_query(db: Session, parsed_query: dict, limit: int = 10) -> List[Contact]:
     """Execute the parsed query against the database"""
     
+    print(f"Executing parsed query with limit: {limit}")
+    print(f"Filters: {parsed_query.get('filters', {})}")
+    
     query = db.query(Contact)
     filters = parsed_query.get("filters", {})
+    
+    # Check if this is a "show all" query (empty filters)
+    has_any_filters = any(key in filters and filters[key] for key in filters.keys())
+    print(f"Has any filters: {has_any_filters}")
+    
+    # If no filters and query suggests "all contacts", increase limit significantly
+    if not has_any_filters and any(word in parsed_query.get("explanation", "").lower() for word in ["all contacts", "showing all"]):
+        limit = 1000  # Increase limit for "show all" queries
+        print(f"Detected 'show all' query, increased limit to: {limit}")
     
     # Apply filters
     conditions = []
     
     # General keyword search
-    if "keyword" in filters:
+    if "keyword" in filters and filters["keyword"]:
         keyword_term = f"%{filters['keyword']}%"
         conditions.append(
             or_(
@@ -279,7 +291,7 @@ def execute_parsed_query(db: Session, parsed_query: dict, limit: int = 10) -> Li
         )
     
     # Name filter
-    if "name" in filters:
+    if "name" in filters and filters["name"]:
         name_term = f"%{filters['name']}%"
         conditions.append(
             or_(
@@ -289,43 +301,46 @@ def execute_parsed_query(db: Session, parsed_query: dict, limit: int = 10) -> Li
         )
     
     # Email filter
-    if "email" in filters:
+    if "email" in filters and filters["email"]:
         email_term = f"%{filters['email']}%"
         conditions.append(Contact.email.ilike(email_term))
     
     # Job title filter
-    if "job_title" in filters:
+    if "job_title" in filters and filters["job_title"]:
         job_term = f"%{filters['job_title']}%"
         conditions.append(Contact.job_title.ilike(job_term))
     
     # Company filter
-    if "company" in filters:
+    if "company" in filters and filters["company"]:
         company_term = f"%{filters['company']}%"
         conditions.append(Contact.company.ilike(company_term))
     
     # Location filter
-    if "location" in filters:
+    if "location" in filters and filters["location"]:
         location_term = f"%{filters['location']}%"
         conditions.append(Contact.location.ilike(location_term))
     
     # Age filters
-    if "age_min" in filters:
+    if "age_min" in filters and filters["age_min"] is not None:
         conditions.append(Contact.age >= filters["age_min"])
-    if "age_max" in filters:
+    if "age_max" in filters and filters["age_max"] is not None:
         conditions.append(Contact.age <= filters["age_max"])
     
     # Pets filter
-    if "has_pets" in filters:
+    if "has_pets" in filters and filters["has_pets"] is not None:
         conditions.append(Contact.has_pets == filters["has_pets"])
     
     # Business needs filter
-    if "business_needs" in filters:
+    if "business_needs" in filters and filters["business_needs"]:
         business_term = f"%{filters['business_needs']}%"
         conditions.append(Contact.business_needs.ilike(business_term))
     
     # Apply all conditions
     if conditions:
         query = query.filter(and_(*conditions))
+        print(f"Applied {len(conditions)} filter conditions")
+    else:
+        print("No filter conditions applied - will return all contacts")
     
     # Handle interests filter
     if "interests" in filters and filters["interests"]:
@@ -342,6 +357,7 @@ def execute_parsed_query(db: Session, parsed_query: dict, limit: int = 10) -> Li
             )
         if interest_conditions:
             query = query.filter(or_(*interest_conditions))
+            print(f"Applied {len(interest_conditions)} interest conditions")
     
     # Handle skills filter
     if "skills" in filters and filters["skills"]:
@@ -353,9 +369,12 @@ def execute_parsed_query(db: Session, parsed_query: dict, limit: int = 10) -> Li
             )
         if skill_conditions:
             query = query.filter(or_(*skill_conditions))
+            print(f"Applied {len(skill_conditions)} skill conditions")
     
     # Execute query with limit
-    return query.limit(limit).all()
+    results = query.limit(limit).all()
+    print(f"Query executed, returning {len(results)} contacts")
+    return results
 
 @router.get("/history", response_model=List[QueryHistoryResponse])
 async def get_query_history(
