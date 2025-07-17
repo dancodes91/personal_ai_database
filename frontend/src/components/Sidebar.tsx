@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   HomeIcon,
   UserGroupIcon,
@@ -29,6 +30,7 @@ function classNames(...classes: string[]) {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <div className="flex flex-col w-64 bg-gray-900">
@@ -66,10 +68,7 @@ export default function Sidebar() {
         {/* Logout button at bottom */}
         <div className="px-2 pb-4">
           <button
-            onClick={() => {
-              // For now, just redirect to login page
-              window.location.href = '/login';
-            }}
+            onClick={logout}
             className="w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
           >
             <ArrowRightOnRectangleIcon

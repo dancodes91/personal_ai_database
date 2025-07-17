@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   UserCircleIcon,
   MagnifyingGlassIcon,
@@ -15,6 +16,7 @@ interface HeaderProps {
 export default function Header({ title, subtitle }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const { userEmail } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +62,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
           {/* User info */}
           <div className="flex items-center space-x-3">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">aaa@gmail.com</p>
+              <p className="text-sm font-medium text-gray-900">{userEmail || 'aaa@gmail.com'}</p>
               <p className="text-xs text-gray-500">Administrator</p>
             </div>
             <UserCircleIcon className="h-8 w-8 text-gray-400" aria-hidden="true" />
