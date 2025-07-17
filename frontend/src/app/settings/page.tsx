@@ -25,6 +25,138 @@ interface Settings {
   backup_frequency: string;
 }
 
+function PasswordChangeSection() {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 4) {
+      setError('New password must be at least 4 characters long');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setError('You must be logged in to change password');
+        return;
+      }
+
+      const response = await fetch('http://localhost:8000/api/v1/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessage(data.message);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Failed to change password');
+      }
+    } catch (error) {
+      console.error('Password change error:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <h4 className="text-sm font-medium text-gray-900 mb-4">Change Password</h4>
+      <form onSubmit={handlePasswordChange}>
+        <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+          {message && (
+            <div className="rounded-md bg-green-50 p-4">
+              <div className="text-sm text-green-700">{message}</div>
+            </div>
+          )}
+          
+          {error && (
+            <div className="rounded-md bg-red-50 p-4">
+              <div className="text-sm text-red-700">{error}</div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Current Password
+            </label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              placeholder="Enter current password"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              New Password
+            </label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              placeholder="Enter new password"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Confirm New Password
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              placeholder="Confirm new password"
+              required
+            />
+          </div>
+          <button 
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <KeyIcon className="w-4 h-4 mr-2" />
+            {loading ? 'Updating...' : 'Update Password'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     openai_api_key: '',
@@ -378,6 +510,9 @@ export default function SettingsPage() {
               <h3 className="text-lg font-medium text-gray-900 mb-6">Security & Privacy</h3>
               
               <div className="space-y-6">
+                {/* Password Update */}
+                <PasswordChangeSection />
+
                 {/* Data Privacy */}
                 <div className="bg-blue-50 rounded-lg p-4">
                   <div className="flex">

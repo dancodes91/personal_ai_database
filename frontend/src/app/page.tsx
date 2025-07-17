@@ -127,7 +127,7 @@ export default function Dashboard() {
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Create Event
               </Link>
-              <Link href="/audio/upload" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
+              <Link href="/audio/" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
                 <MicrophoneIcon className="h-4 w-4 mr-2" />
                 Upload Audio
               </Link>

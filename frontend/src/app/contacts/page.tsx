@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
   EyeIcon,
   PencilIcon,
   TrashIcon,
@@ -23,7 +22,6 @@ export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalContacts, setTotalContacts] = useState(0);
@@ -36,13 +34,14 @@ export default function ContactsPage() {
   const loadContacts = async () => {
     try {
       setLoading(true);
-      const response = await contactsApi.getAll({ 
-        search: searchQuery,
-        skip: (currentPage - 1) * itemsPerPage,
-        limit: itemsPerPage 
-      });
-      setContacts(response.data);
-      setTotalContacts(response.data.length);
+      const response = await contactsApi.getAll({ search: searchQuery });
+      const allContacts = response.data;
+      setTotalContacts(allContacts.length);
+      
+      // Client-side pagination
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      setContacts(allContacts.slice(startIndex, endIndex));
     } catch (error) {
       console.error('Failed to load contacts:', error);
     } finally {
@@ -61,37 +60,22 @@ export default function ContactsPage() {
     }
   };
 
-  const toggleContactSelection = (contactId: number) => {
-    setSelectedContacts(prev => 
-      prev.includes(contactId) 
-        ? prev.filter(id => id !== contactId)
-        : [...prev, contactId]
-    );
-  };
 
   const ContactCard = ({ contact }: { contact: Contact }) => (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
-            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-              <UserIcon className="w-6 h-6 text-gray-600" />
-            </div>
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-medium text-gray-900 truncate">
-              {contact.first_name} {contact.last_name}
-            </h3>
-            <p className="text-sm text-gray-500">{contact.job_title}</p>
-            <p className="text-sm text-gray-500">{contact.company}</p>
+      <div className="flex items-center space-x-3">
+        <div className="flex-shrink-0">
+          <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+            <UserIcon className="w-6 h-6 text-gray-600" />
           </div>
         </div>
-        <input
-          type="checkbox"
-          checked={selectedContacts.includes(contact.id)}
-          onChange={() => toggleContactSelection(contact.id)}
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
+        <div className="min-w-0 flex-1">
+          <h3 className="text-lg font-medium text-gray-900 truncate">
+            {contact.first_name} {contact.last_name}
+          </h3>
+          <p className="text-sm text-gray-500">{contact.job_title}</p>
+          <p className="text-sm text-gray-500">{contact.company}</p>
+        </div>
       </div>
 
       <div className="mt-4 space-y-2">
@@ -182,14 +166,6 @@ export default function ContactsPage() {
 
   const ContactListItem = ({ contact }: { contact: Contact }) => (
     <tr className="hover:bg-gray-50">
-      <td className="px-6 py-4 whitespace-nowrap">
-        <input
-          type="checkbox"
-          checked={selectedContacts.includes(contact.id)}
-          onChange={() => toggleContactSelection(contact.id)}
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
-      </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <div className="flex-shrink-0 h-10 w-10">
@@ -289,15 +265,6 @@ export default function ContactsPage() {
           </div>
 
           <div className="mt-4 sm:mt-0 flex items-center space-x-3">
-            {selectedContacts.length > 0 && (
-              <span className="text-sm text-gray-500">
-                {selectedContacts.length} selected
-              </span>
-            )}
-            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-              <FunnelIcon className="h-4 w-4 mr-2" />
-              Filter
-            </button>
             <Link
               href="/contacts/new"
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
@@ -341,12 +308,6 @@ export default function ContactsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Name
                   </th>
@@ -398,7 +359,9 @@ export default function ContactsPage() {
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Showing page <span className="font-medium">{currentPage}</span> of contacts
+                  Showing page <span className="font-medium">{currentPage}</span> of{' '}
+                  <span className="font-medium">{Math.ceil(totalContacts / itemsPerPage)}</span>
+                  {' '}({totalContacts} total contacts)
                 </p>
               </div>
               <div>
@@ -415,8 +378,11 @@ export default function ContactsPage() {
                   </button>
                   
                   {/* Page numbers */}
-                  {[...Array(Math.min(5, Math.max(1, Math.ceil(totalContacts / itemsPerPage))))].map((_, index) => {
-                    const pageNumber = Math.max(1, currentPage - 2) + index;
+                  {[...Array(Math.min(5, Math.ceil(totalContacts / itemsPerPage)))].map((_, index) => {
+                    const totalPages = Math.ceil(totalContacts / itemsPerPage);
+                    const pageNumber = Math.max(1, Math.min(totalPages, currentPage - 2)) + index;
+                    if (pageNumber > totalPages) return null;
+                    
                     return (
                       <button
                         key={pageNumber}
@@ -434,7 +400,7 @@ export default function ContactsPage() {
                   
                   <button
                     onClick={() => setCurrentPage(prev => prev + 1)}
-                    disabled={contacts.length < itemsPerPage}
+                    disabled={currentPage >= Math.ceil(totalContacts / itemsPerPage)}
                     className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="sr-only">Next</span>

@@ -10,6 +10,7 @@ import {
   MagnifyingGlassIcon,
   ChartBarIcon,
   Cog6ToothIcon,
+  ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
@@ -61,6 +62,23 @@ export default function Sidebar() {
             );
           })}
         </nav>
+        
+        {/* Logout button at bottom */}
+        <div className="px-2 pb-4">
+          <button
+            onClick={() => {
+              // For now, just redirect to login page
+              window.location.href = '/login';
+            }}
+            className="w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
+          >
+            <ArrowRightOnRectangleIcon
+              className="mr-3 flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-300"
+              aria-hidden="true"
+            />
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   );
