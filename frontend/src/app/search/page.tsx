@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   MagnifyingGlassIcon,
   SparklesIcon,
@@ -8,6 +9,7 @@ import {
   UserIcon,
   LightBulbIcon,
   ChartBarIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 import AdminLayout from '@/components/AdminLayout';
 import { queryApi } from '@/lib/api';
@@ -215,6 +217,16 @@ export default function SearchPage() {
                             <span className="font-medium">Match reason:</span> {result.match_reason}
                           </div>
                         )}
+                      </div>
+                      
+                      <div className="flex-shrink-0 ml-4">
+                        <Link
+                          href={`/contacts/${result.contact.id}`}
+                          className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          <EyeIcon className="w-4 h-4 mr-2" />
+                          View Details
+                        </Link>
                       </div>
                     </div>
                   </div>

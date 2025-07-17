@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import Link from 'next/link';
 import {
   CloudArrowUpIcon,
   MicrophoneIcon,
@@ -13,6 +14,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ClockIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 import AdminLayout from '@/components/AdminLayout';
 import { audioApi } from '@/lib/api';
@@ -32,6 +34,12 @@ export default function AudioProcessingPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>({});
+  const [selectedTranscription, setSelectedTranscription] = useState<{
+    id: number;
+    fileName: string;
+    transcription: string;
+  } | null>(null);
+  const [loadingTranscription, setLoadingTranscription] = useState(false);
 
   useEffect(() => {
     loadRecordings();
@@ -172,6 +180,23 @@ export default function AudioProcessingPage() {
     return 'Pending';
   };
 
+  const handleViewTranscription = async (recording: AudioRecording) => {
+    setLoadingTranscription(true);
+    try {
+      const response = await audioApi.getById(recording.id);
+      setSelectedTranscription({
+        id: recording.id,
+        fileName: recording.file_name,
+        transcription: response.data.transcription || 'No transcription available'
+      });
+    } catch (error) {
+      console.error('Failed to load transcription:', error);
+      alert('Failed to load transcription. Please try again.');
+    } finally {
+      setLoadingTranscription(false);
+    }
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -250,17 +275,32 @@ export default function AudioProcessingPage() {
         )}
         
         {recording.has_transcription && (
-          <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+          <button 
+            onClick={() => handleViewTranscription(recording)}
+            disabled={loadingTranscription}
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+          >
             <DocumentTextIcon className="w-4 h-4 mr-1" />
-            View Transcript
+            {loadingTranscription ? 'Loading...' : 'View Transcript'}
           </button>
         )}
         
+        <Link
+          href={`/audio/${recording.id}`}
+          className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+        >
+          <EyeIcon className="w-4 h-4 mr-1" />
+          View Details
+        </Link>
+        
         {recording.contact_id && (
-          <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+          <Link
+            href={`/contacts/${recording.contact_id}`}
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50"
+          >
             <UserPlusIcon className="w-4 h-4 mr-1" />
             View Contact
-          </button>
+          </Link>
         )}
       </div>
     </div>
@@ -435,6 +475,62 @@ export default function AudioProcessingPage() {
             </div>
           </div>
         </div>
+
+        {/* Transcription Modal */}
+        {selectedTranscription && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Audio Transcription
+                  </h3>
+                  <button
+                    onClick={() => setSelectedTranscription(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">File:</span> {selectedTranscription.fileName}
+                  </p>
+                </div>
+                
+                <div className="max-h-96 overflow-y-auto">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Transcription:</h4>
+                    <p className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
+                      {selectedTranscription.transcription}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedTranscription.transcription);
+                      alert('Transcription copied to clipboard!');
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    Copy Text
+                  </button>
+                  <button
+                    onClick={() => setSelectedTranscription(null)}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );
