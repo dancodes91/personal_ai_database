@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   MagnifyingGlassIcon,
@@ -16,6 +17,7 @@ import { queryApi } from '@/lib/api';
 import { QueryResult, QuerySuggestions } from '@/types';
 
 export default function SearchPage() {
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<QueryResult | null>(null);
   const [suggestions, setSuggestions] = useState<QuerySuggestions | null>(null);
@@ -25,7 +27,14 @@ export default function SearchPage() {
   useEffect(() => {
     loadSuggestions();
     loadHistory();
-  }, []);
+    
+    // Check for query parameter and perform search
+    const urlQuery = searchParams.get('q');
+    if (urlQuery) {
+      setQuery(urlQuery);
+      handleSearch(urlQuery);
+    }
+  }, [searchParams]);
 
   const loadSuggestions = async () => {
     try {

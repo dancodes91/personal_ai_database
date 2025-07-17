@@ -23,7 +23,8 @@ interface ContactForm {
   company: string;
   location: string;
   age: number | '';
-  notes: string;
+  business_needs?: string;
+  personal_notes?: string;
   interests: Array<{ category: string; value: string }>;
   skills: Array<{ name: string; level: string; experience: number | '' }>;
 }
@@ -40,7 +41,8 @@ export default function NewContactPage() {
     company: '',
     location: '',
     age: '',
-    notes: '',
+    business_needs: '',
+    personal_notes: '',
     interests: [],
     skills: [],
   });
@@ -250,17 +252,32 @@ export default function NewContactPage() {
               </div>
             </div>
 
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notes
-              </label>
-              <textarea
-                rows={4}
-                value={form.notes}
-                onChange={(e) => setForm(prev => ({ ...prev, notes: e.target.value }))}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Additional notes about this contact..."
-              />
+            <div className="mt-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Business Needs
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.business_needs || ''}
+                  onChange={(e) => setForm(prev => ({ ...prev, business_needs: e.target.value }))}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="What services or help might they need?"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Personal Notes
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.personal_notes || ''}
+                  onChange={(e) => setForm(prev => ({ ...prev, personal_notes: e.target.value }))}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Personal details, conversation notes, etc."
+                />
+              </div>
             </div>
           </div>
 
