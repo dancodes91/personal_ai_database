@@ -97,7 +97,7 @@ export default function SearchPage() {
               <input
                 type="text"
                 className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
-                placeholder="e.g., Find music therapists in Los Angeles, Who has pets?, Show me people interested in AI..."
+                placeholder="e.g., Find music therapists in Los Angeles, Who has pets?"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
