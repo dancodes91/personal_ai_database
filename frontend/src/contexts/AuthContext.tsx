@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { API_BASE_URL } from '@/lib/constants';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -29,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (token && email) {
           // Verify token with backend
-          const response = await fetch('http://localhost:8000/api/v1/auth/verify', {
+          const response = await fetch(`${API_BASE_URL}/auth/verify`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },

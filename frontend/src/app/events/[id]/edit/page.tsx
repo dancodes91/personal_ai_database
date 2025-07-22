@@ -11,6 +11,7 @@ import {
   ArrowLeftIcon,
   CheckIcon,
 } from '@heroicons/react/24/outline';
+import { API_BASE_URL } from '@/lib/constants';
 import AdminLayout from '@/components/AdminLayout';
 
 interface Event {
@@ -53,7 +54,7 @@ export default function EditEventPage() {
 
   const fetchEvent = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/events/${params.id}`);
+      const response = await fetch(`${API_BASE_URL}/events/${params.id}`);
       if (response.ok) {
         const event: Event = await response.json();
         
@@ -104,7 +105,7 @@ export default function EditEventPage() {
         notes: formData.notes,
       };
 
-      const response = await fetch(`http://localhost:8000/api/v1/events/${params.id}`, {
+      const response = await fetch(`${API_BASE_URL}/events/${params.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

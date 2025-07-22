@@ -13,6 +13,7 @@ import {
   ArrowLeftIcon,
   TagIcon,
 } from '@heroicons/react/24/outline';
+import { API_BASE_URL } from '@/lib/constants';
 import AdminLayout from '@/components/AdminLayout';
 
 interface Event {
@@ -45,7 +46,7 @@ export default function EventDetailPage() {
 
   const fetchEvent = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/events/${params.id}`);
+      const response = await fetch(`${API_BASE_URL}/events/${params.id}`);
       if (response.ok) {
         const data = await response.json();
         setEvent(data);
@@ -66,7 +67,7 @@ export default function EventDetailPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/events/${params.id}`, {
+      const response = await fetch(`${API_BASE_URL}/events/${params.id}`, {
         method: 'DELETE',
       });
 

@@ -14,6 +14,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import AdminLayout from '@/components/AdminLayout';
+import { API_BASE_URL } from '@/lib/constants';
 
 interface Settings {
   openai_api_key: string;
@@ -57,7 +58,7 @@ function PasswordChangeSection() {
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/v1/auth/change-password', {
+      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
