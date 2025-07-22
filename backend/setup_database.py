@@ -16,11 +16,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 def create_directories():
     """Create necessary directories"""
     directories = [
-        Path("./uploads"),              # backend/uploads
-        Path("./.chromadb"),            # backend/.chromadb
-        Path("../database"),            # database (from backend)
-        Path("../database/migrations"), # database/migrations
-        Path("../database/seeds")       # database/seeds
+        Path("./uploads"),             # backend/uploads
+        Path("./.chromadb"),           # backend/.chromadb
+        Path("./database"),            # database (from backend)
+        Path("./database/migrations"), # database/migrations
+        Path("./database/seeds")       # database/seeds
     ]
     
     for directory in directories:
@@ -34,7 +34,7 @@ def initialize_database():
     
     # Run migration from project root
     result = subprocess.run([
-        sys.executable, "../database/migrate.py", "init"
+        sys.executable, "./database/migrate.py", "init"
     ], capture_output=True, text=True, cwd=Path(__file__).parent)
     
     if result.returncode != 0:
@@ -45,7 +45,7 @@ def initialize_database():
     
     # Run seeding from project root
     result = subprocess.run([
-        sys.executable, "../database/seeds/seed_data.py"
+        sys.executable, "./database/seeds/seed_data.py"
     ], capture_output=True, text=True, cwd=Path(__file__).parent)
     
     if result.returncode != 0:
