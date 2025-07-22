@@ -94,22 +94,22 @@ personal_ai_database/
 │   │   ├── core/              # Configuration & database
 │   │   ├── models/            # SQLAlchemy models
 │   │   └── schemas/           # Pydantic schemas
+│   ├── database/
+│   │   ├── migrations/        # Database schema migrations
+│   │   └── seeds/             # Sample data
 │   ├── uploads/               # Audio file storage
-│   ├── .chromadb/            # Vector database
-│   ├── main.py               # Application entry point
-│   └── requirements.txt      # Python dependencies
+│   ├── .chromadb/             # Vector database
+│   ├── main.py                # Application entry point
+│   └── requirements.txt       # Python dependencies
 ├── frontend/                  # Next.js frontend
 │   ├── src/
-│   │   ├── app/              # Next.js 13+ app router
-│   │   ├── components/       # React components
-│   │   ├── lib/              # Utilities and API client
-│   │   └── types/            # TypeScript definitions
-│   └── package.json          # Node.js dependencies
-├── database/                  # Database management
-│   ├── migrations/           # Database schema migrations
-│   └── seeds/                # Sample data
-├── setup_database.py         # Automated setup script
-└── README.md                 # This file
+│   │   ├── app/               # Next.js 13+ app router
+│   │   ├── components/        # React components
+│   │   ├── lib/               # Utilities and API client
+│   │   └── types/             # TypeScript definitions
+│   └── package.json           # Node.js dependencies
+├── setup_database.py          # Automated setup script
+└── README.md                  # This file
 ```
 
 ## 🎯 Usage Guide

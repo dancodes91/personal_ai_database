@@ -136,8 +136,7 @@ def main():
             
             print("\nYour Personal AI Database will be available at:")
             print("- Backend API: http://localhost:8000")
-            print("- API Docs: http://localhost:8000/docs")
-            print("- Frontend: http://localhost:3000")
+            print("- Frontend: https://personal-ai-database.vercel.app/")
             
             print("\n🎵 Ready to Sing with Me! 🎵")
         else:

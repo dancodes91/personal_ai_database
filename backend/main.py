@@ -3,10 +3,12 @@ Main FastAPI application entry point
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.database import engine
 from app.models import Contact, ContactInterest, ContactSkill, AudioRecording, Event, EventParticipation, QueryHistory
 from app.api.v1.api import api_router
+from database.migrate import run_initial_migration
 
 # Create database tables
 Contact.metadata.create_all(bind=engine)
@@ -18,6 +20,12 @@ app = FastAPI(
     version="2.0.0",
     openapi_url=f"{settings.api_v1_str}/openapi.json"
 )
+
+# Setup DB migration on startup
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    run_initial_migration()
+    yield
 
 # Set up CORS
 app.add_middleware(

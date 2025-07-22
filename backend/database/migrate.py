@@ -63,6 +63,10 @@ def create_database():
         else:
             print(f"Database file already exists: {db_path}")
 
+def run_initial_migration():
+    print("Running initial database migration...")
+    create_database()
+    run_migration("001_initial_schema.py", "upgrade")
 
 def main():
     """Main migration runner"""
