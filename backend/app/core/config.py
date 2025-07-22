@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     user_password: str = "12345"
     
     # CORS - loaded from .env as comma-separated string
-    allowed_origins: str = "https://personal-ai-database.vercel.app,http://localhost:3000,http://127.0.0.1:3000"
+    allowed_origins: str = "https://personal-ai-database.vercel.app,https://personal-ai-database.vercel.app/"
     
     # File Upload
     upload_dir: str = "./uploads"
