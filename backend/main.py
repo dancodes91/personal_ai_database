@@ -21,7 +21,7 @@ app = FastAPI(
     version="2.0.0",
     openapi_url=f"{settings.api_v1_str}/openapi.json"
 )
-
+# One more thing: collaborate actively with this project.
 # Setup DB migration on startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
