@@ -10,7 +10,7 @@ from app.models import Contact, ContactInterest, ContactSkill, AudioRecording, E
 from app.api.v1.api import api_router
 from database.migrate import run_initial_migration
 
-# FIX: Got it
+# FIXME:Daniel, your new passport status and the LinkedIn status should be clarified.
 # Create database tables
 Contact.metadata.create_all(bind=engine)
 
