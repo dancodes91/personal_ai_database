@@ -21,7 +21,7 @@ app = FastAPI(
     version="2.0.0",
     openapi_url=f"{settings.api_v1_str}/openapi.json"
 )
-# One more thing: collaborate actively with this project.
+# One more thing: I can't reach out to your TG. What's wrong?
 # Setup DB migration on startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
