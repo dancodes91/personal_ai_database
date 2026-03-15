@@ -74,6 +74,7 @@ Key data points for extraction were identified as job title, location, age, and 
 A strategy was established to test with a few recordings initially, building incrementally to avoid extensive data re-import when adding new fields.
 Transition to a custom model from ChatGPT referencing is planned once the dataset reaches hundreds or thousands of entries for improved efficiency.
 Shane is currently resolving an issue with his Upwork account hold and will communicate detailed timelines and pricing information via Upwork messaging.
+Update the progress state of Shane's so we can figure out what's going on.
 Notes
 📈 Business Development & Strategy Discussion (00:00 - 00:45)
 Reggie Guillaume acknowledges Shane as a business owner who should focus on scaling by replacing himself with team members or outsourcing to handle more clients.
